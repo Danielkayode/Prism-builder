@@ -23,19 +23,19 @@ if [[ "${CI_BUILD}" != "no" ]]; then
 fi
 
 PRISM_BRANCH="main"
-echo "Cloning Prism ${PRISM_BRANCH}..."
+echo "Cloning Prism Editor ${PRISM_BRANCH}..."
 
+# We keep the directory as 'vscode' to maintain compatibility with build tools
+# that expect this specific folder structure.
 mkdir -p vscode
 cd vscode || { echo "'vscode' dir not found"; exit 1; }
 
 git init -q
-git remote add origin https://github.com/Danielkayode/prism-Editor.git
+git remote add origin https://github.com/danielkayode/prism-Editor.git
 
 # Allow callers to specify a particular commit to checkout via the
 # environment variable PRISM_COMMIT. We still default to the tip of the
-# ${PRISM_BRANCH} branch when the variable is not provided. Keeping
-# PRISM_BRANCH as "main" ensures the rest of the script (and downstream
-# consumers) behave exactly as before.
+# ${PRISM_BRANCH} branch when the variable is not provided.
 if [[ -n "${PRISM_COMMIT}" ]]; then
   echo "Using explicit commit ${PRISM_COMMIT}"
   # Fetch just that commit to keep the clone shallow.
@@ -49,28 +49,20 @@ fi
 MS_TAG=$( jq -r '.version' "package.json" )
 MS_COMMIT=$PRISM_BRANCH 
 
-# Prism - Attempt to get prismVersion, fallback to null/empty if missing
-PRISM_VERSION=$( jq -r '.prismVersion // empty' "product.json" )
-
-# Fallback handling if not in product.json yet
-if [[ -z "${PRISM_VERSION}" ]]; then
-  echo "Prism version not found in product.json, using default fallback."
-  PRISM_VERSION="0.0.1"
-fi
+# Prism - Try to get prismVersion, fallback to voidVersion if not found
+PRISM_VERSION=$( jq -r '.prismVersion // .voidVersion' "product.json" )
 
 if [[ -n "${PRISM_RELEASE}" ]]; then 
+  # Manual release override
   RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE}"
 else
-  # Prism - Attempt to get prismRelease, fallback
-  PRISM_RELEASE=$( jq -r '.prismRelease // empty' "product.json" )
-  
-  if [[ -z "${PRISM_RELEASE}" ]]; then
-     echo "Prism release not found in product.json, using default fallback."
-     PRISM_RELEASE=""
-  fi
-  
+  # Prism - Try to get prismRelease, fallback to voidRelease
+  PRISM_RELEASE=$( jq -r '.prismRelease // .voidRelease' "product.json" )
   RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE}"
 fi
+
+# RELEASE_VERSION is later used as version (1.0.3+RELEASE_VERSION), 
+# so it MUST be a number or it will throw a semver error.
 
 echo "RELEASE_VERSION=\"${RELEASE_VERSION}\""
 echo "MS_COMMIT=\"${MS_COMMIT}\""
@@ -90,9 +82,8 @@ echo "----------- get_repo exports -----------"
 echo "MS_TAG ${MS_TAG}"
 echo "MS_COMMIT ${MS_COMMIT}"
 echo "RELEASE_VERSION ${RELEASE_VERSION}"
-echo "PRISM VERSION ${PRISM_VERSION}"
+echo "PRISM_VERSION ${PRISM_VERSION}"
 echo "----------------------"
-
 
 export MS_TAG
 export MS_COMMIT

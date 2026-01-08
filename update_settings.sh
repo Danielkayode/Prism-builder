@@ -17,7 +17,6 @@ update_setting () {
 
   FILENAME="${2}"
   if [[ ! -f "${FILENAME}" ]]; then
-    echo "File to update setting in does not exist ${FILENAME}"
     return
   fi
 
@@ -34,18 +33,14 @@ update_setting () {
     fi
   done < "${FILENAME}"
 
-  if [[ "${FOUND}" != "1" ]]; then
-    echo "${DEFAULT_TRUE} not found for setting ${SETTING} in file ${FILENAME}"
-    return
+  if [[ "${FOUND}" == "1" ]]; then
+    if [[ "${line}" == *"${DEFAULT_TRUE}"* ]]; then
+      DEFAULT_TRUE_TO_FALSE="${LINE_NUM}s/${DEFAULT_TRUE}/${DEFAULT_FALSE}/"
+    else
+      DEFAULT_TRUE_TO_FALSE="${LINE_NUM}s/${DEFAULT_ON}/${DEFAULT_OFF}/"
+    fi
+    replace "${DEFAULT_TRUE_TO_FALSE}" "${FILENAME}"
   fi
-
-  if [[ "${line}" == *"${DEFAULT_TRUE}"* ]]; then
-    DEFAULT_TRUE_TO_FALSE="${LINE_NUM}s/${DEFAULT_TRUE}/${DEFAULT_FALSE}/"
-  else
-    DEFAULT_TRUE_TO_FALSE="${LINE_NUM}s/${DEFAULT_ON}/${DEFAULT_OFF}/"
-  fi
-
-  replace "${DEFAULT_TRUE_TO_FALSE}" "${FILENAME}"
 }
 
 # Apply telemetry updates
@@ -54,15 +49,12 @@ update_setting "${TELEMETRY_CONFIGURATION}" src/vs/platform/telemetry/common/tel
 update_setting "${NLS}" src/vs/workbench/contrib/preferences/common/preferencesContribution.ts
 
 # --- Prism Rebranding & Remote URL Injection ---
-echo "Injecting Prism-specific configurations..."
-# Construct the download URL for the Remote Entity Host (REH)
+echo "Injecting Prism configurations..."
 URL="https://github.com/${GH_REPO_PATH}/releases/download/${RELEASE_VERSION}/${APP_NAME_LC}-reh-\${os}-\${arch}-${RELEASE_VERSION}.tar.gz"
 
-# Inject the serverDownloadUrlTemplate into Gulp files
+# Replace failing patches by using direct sed injection
 sed -i "s@version }))@version, serverDownloadUrlTemplate: '${URL}' })@g" build/gulpfile.reh.js
 sed -i "s@version }))@version, serverDownloadUrlTemplate: '${URL}' })@g" build/gulpfile.vscode.js
-
-# Update the binary name configuration
 sed -i "s/name: .*/name: '${BINARY_NAME}',/" build/gulpfile.vscode.js
 
 echo "Update settings completed successfully."

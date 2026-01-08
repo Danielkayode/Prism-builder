@@ -50,28 +50,6 @@ update_setting () {
   replace "${DEFAULT_TRUE_TO_FALSE}" "${FILENAME}"
 }
 
-echo "Configuring Prism-specific features..."
-
 update_setting "${TELEMETRY_CRASH_REPORTER}" src/vs/workbench/electron-sandbox/desktop.contribution.ts
 update_setting "${TELEMETRY_CONFIGURATION}" src/vs/platform/telemetry/common/telemetryService.ts
 update_setting "${NLS}" src/vs/workbench/contrib/preferences/common/preferencesContribution.ts
-
-echo "Applying Prism customizations..."
-
-# The patch application block has been disabled.
-# if [[ -d ../patches ]]; then
-#   echo "Checking for patches in ../patches/..."
-#   # Enable nullglob so the loop doesn't run if no files match
-#   shopt -s nullglob
-#   for file in ../patches/*.patch; do
-#     if [[ -f "$file" ]]; then
-#       echo "Applying patch: $file"
-#       apply_patch "$file"
-#     fi
-#   done
-#   shopt -u nullglob
-# else
-#   echo "No patches directory found, skipping patch application."
-# fi
-
-echo "Prism settings updated successfully."

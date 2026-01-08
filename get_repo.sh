@@ -49,8 +49,7 @@ MS_TAG=$( jq -r '.version' "package.json" )
 MS_COMMIT=$PRISM_BRANCH 
 
 # Extract Prism-specific versioning
-# Robust jq filter: check prismVersion, then voidVersion. 
-# If both are null or missing, return empty string to avoid "null" string concatenation.
+# Robust jq filter to prevent "null" strings
 PRISM_VERSION=$( jq -r 'if .prismVersion != null then .prismVersion elif .voidVersion != null then .voidVersion else empty end' "product.json" )
 
 if [[ -n "${PRISM_RELEASE}" ]]; then 
@@ -58,7 +57,6 @@ if [[ -n "${PRISM_RELEASE}" ]]; then
   RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE}"
 else
   # Automatic release suffix from product.json
-  # Same robust logic to prevent "1.99.3null"
   PRISM_RELEASE_VAL=$( jq -r 'if .prismRelease != null then .prismRelease elif .voidRelease != null then .voidRelease else empty end' "product.json" )
   RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE_VAL}"
 fi
@@ -66,6 +64,15 @@ fi
 echo "RELEASE_VERSION=\"${RELEASE_VERSION}\""
 echo "MS_COMMIT=\"${MS_COMMIT}\""
 echo "MS_TAG=\"${MS_TAG}\""
+
+# --- PRE-PATCH VALIDATION ---
+# Your build failed at build/gulpfile.vscode.js:288
+echo "Checking patch compatibility for build/gulpfile.vscode.js..."
+if [ -f "build/gulpfile.vscode.js" ]; then
+  # Peek at the line that usually causes trouble for the add-remote-url patch
+  TARGET_LINE=$(sed -n '288p' build/gulpfile.vscode.js)
+  echo "Line 288 content: $TARGET_LINE"
+fi
 
 cd ..
 
@@ -83,9 +90,6 @@ echo "MS_COMMIT: ${MS_COMMIT}"
 echo "RELEASE_VERSION: ${RELEASE_VERSION}"
 echo "PRISM_VERSION: ${PRISM_VERSION}"
 echo "----------------------"
-
-# Helpful Debug for Patching
-echo "Note: If patches fail in the next step, check vscode/build/gulpfile.vscode.js around line 288."
 
 export MS_TAG
 export MS_COMMIT

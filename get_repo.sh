@@ -48,16 +48,19 @@ fi
 MS_TAG=$( jq -r '.version' "package.json" )
 MS_COMMIT=$PRISM_BRANCH 
 
-# Extract Prism-specific versioning (with fallback for transition period)
-PRISM_VERSION=$( jq -r '.prismVersion // .voidVersion' "product.json" )
+# Extract Prism-specific versioning
+# Robust jq filter: check prismVersion, then voidVersion. 
+# If both are null or missing, return empty string to avoid "null" string concatenation.
+PRISM_VERSION=$( jq -r 'if .prismVersion != null then .prismVersion elif .voidVersion != null then .voidVersion else empty end' "product.json" )
 
 if [[ -n "${PRISM_RELEASE}" ]]; then 
   # Manual release override from workflow dispatch
   RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE}"
 else
   # Automatic release suffix from product.json
-  PRISM_RELEASE=$( jq -r '.prismRelease // .voidRelease' "product.json" )
-  RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE}"
+  # Same robust logic to prevent "1.99.3null"
+  PRISM_RELEASE_VAL=$( jq -r 'if .prismRelease != null then .prismRelease elif .voidRelease != null then .voidRelease else empty end' "product.json" )
+  RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE_VAL}"
 fi
 
 echo "RELEASE_VERSION=\"${RELEASE_VERSION}\""
@@ -80,6 +83,9 @@ echo "MS_COMMIT: ${MS_COMMIT}"
 echo "RELEASE_VERSION: ${RELEASE_VERSION}"
 echo "PRISM_VERSION: ${PRISM_VERSION}"
 echo "----------------------"
+
+# Helpful Debug for Patching
+echo "Note: If patches fail in the next step, check vscode/build/gulpfile.vscode.js around line 288."
 
 export MS_TAG
 export MS_COMMIT

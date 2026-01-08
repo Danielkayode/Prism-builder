@@ -1,90 +1,77 @@
-#!/bin/bash
+# shellcheck disable=SC1091,2148
 
-set -e
+DEFAULT_TRUE="'default': true"
+DEFAULT_FALSE="'default': false"
+DEFAULT_ON="'default': TelemetryConfiguration.ON"
+DEFAULT_OFF="'default': TelemetryConfiguration.OFF"
+TELEMETRY_CRASH_REPORTER="'telemetry.enableCrashReporter':"
+TELEMETRY_CONFIGURATION=" TelemetryConfiguration.ON"
+NLS=workbench.settings.enableNaturalLanguageSearch
 
+# include common functions
 . ../utils.sh
 
-echo "---------- update_settings.sh -----------"
-echo "APP_NAME=\"${APP_NAME}\""
-echo "APP_NAME_LC=\"${APP_NAME_LC}\""
-echo "BINARY_NAME=\"${BINARY_NAME}\""
-echo "GH_REPO_PATH=\"${GH_REPO_PATH}\""
-echo "ORG_NAME=\"${ORG_NAME}\""
+update_setting () {
+  local FILENAME SETTING LINE_NUM IN_SETTING FOUND DEFAULT_TRUE_TO_FALSE
 
-echo ""
-echo "Rebranding from Void to ${APP_NAME}..."
+  FILENAME="${2}"
+  # check that the file exists
+  if [[ ! -f "${FILENAME}" ]]; then
+    echo "File to update setting in does not exist ${FILENAME}"
+    return
+  fi
 
-# Update product.json
-if [ -f "product.json" ]; then
-  echo "Updating product.json..."
-  
-  # Replace name
-  ${REPLACE} -i "s|\"nameShort\": \"Void\"|\"nameShort\": \"${APP_NAME}\"|g" product.json
-  ${REPLACE} -i "s|\"nameLong\": \"Void\"|\"nameLong\": \"${APP_NAME}\"|g" product.json
-  
-  # Replace application name
-  ${REPLACE} -i "s|\"applicationName\": \"void\"|\"applicationName\": \"${BINARY_NAME}\"|g" product.json
-  
-  # Replace data folder
-  ${REPLACE} -i "s|\"dataFolderName\": \".void\"|\"dataFolderName\": \".${BINARY_NAME}\"|g" product.json
-  
-  # Replace URLs and identifiers
-  ${REPLACE} -i "s|voideditor|${ORG_NAME}|g" product.json
-  ${REPLACE} -i "s|void-editor|${BINARY_NAME}-editor|g" product.json
-  
-  # Update Windows identifiers
-  ${REPLACE} -i "s|\"win32MutexName\": \"void\"|\"win32MutexName\": \"${BINARY_NAME}\"|g" product.json
-  ${REPLACE} -i "s|\"win32DirName\": \"Void\"|\"win32DirName\": \"${APP_NAME}\"|g" product.json
-  ${REPLACE} -i "s|\"win32NameVersion\": \"Void\"|\"win32NameVersion\": \"${APP_NAME}\"|g" product.json
-  ${REPLACE} -i "s|\"win32AppUserModelId\": \"Void.Void\"|\"win32AppUserModelId\": \"${APP_NAME}.${APP_NAME}\"|g" product.json
-  ${REPLACE} -i "s|\"win32AppId\": \"{{.*}}\"|\"win32AppId\": \"{{${APP_NAME}}}\"|g" product.json
-  
-  # Update shortcuts
-  ${REPLACE} -i "s|\"win32ShellNameShort\": \"Void\"|\"win32ShellNameShort\": \"${APP_NAME}\"|g" product.json
-  
-  # Update Linux identifiers
-  ${REPLACE} -i "s|\"linuxIconName\": \"void\"|\"linuxIconName\": \"${BINARY_NAME}\"|g" product.json
-  
-  # Update URLs
-  ${REPLACE} -i "s|\"reportIssueUrl\": \"https://github.com/voideditor/void/issues/new\"|\"reportIssueUrl\": \"https://github.com/${GH_REPO_PATH}/issues/new\"|g" product.json
-fi
+  # go through lines of file, looking for block that contains setting
+  SETTING="${1}"
+  LINE_NUM=0
+  while read -r line; do
+    LINE_NUM=$(( LINE_NUM + 1 ))
+    if [[ "${line}" == *"${SETTING}"* ]]; then
+      IN_SETTING=1
+    fi
+    if [[ ("${line}" == *"${DEFAULT_TRUE}"* || "${line}" == *"${DEFAULT_ON}"*) && "${IN_SETTING}" == "1" ]]; then
+      FOUND=1
+      break
+    fi
+  done < "${FILENAME}"
 
-# Update package.json
-if [ -f "package.json" ]; then
-  echo "Updating package.json..."
-  ${REPLACE} -i "s|\"name\": \"void\"|\"name\": \"${BINARY_NAME}\"|g" package.json
-  ${REPLACE} -i "s|\"description\": \"Void\"|\"description\": \"${APP_NAME}\"|g" package.json
-fi
+  if [[ "${FOUND}" != "1" ]]; then
+    echo "${DEFAULT_TRUE} not found for setting ${SETTING} in file ${FILENAME}"
+    return
+  fi
 
-# Apply patches from patches directory
-echo ""
-echo "Applying patches at ../patches/*.patch..."
-if [ -d "../patches" ] && compgen -G "../patches/*.patch" > /dev/null; then
-  for patch in ../patches/*.patch; do
-    if [ -f "$patch" ]; then
-      echo "Applying patch: $patch"
-      git apply "$patch" || echo "Warning: Could not apply $patch"
+  # construct line-aware replacement string
+  if [[ "${line}" == *"${DEFAULT_TRUE}"* ]]; then
+    DEFAULT_TRUE_TO_FALSE="${LINE_NUM}s/${DEFAULT_TRUE}/${DEFAULT_FALSE}/"
+  else
+    DEFAULT_TRUE_TO_FALSE="${LINE_NUM}s/${DEFAULT_ON}/${DEFAULT_OFF}/"
+  fi
+
+  replace "${DEFAULT_TRUE_TO_FALSE}" "${FILENAME}"
+}
+
+echo "Configuring Prism-specific features..."
+
+update_setting "${TELEMETRY_CRASH_REPORTER}" src/vs/workbench/electron-sandbox/desktop.contribution.ts
+update_setting "${TELEMETRY_CONFIGURATION}" src/vs/platform/telemetry/common/telemetryService.ts
+update_setting "${NLS}" src/vs/workbench/contrib/preferences/common/preferencesContribution.ts
+
+echo "Applying Prism customizations..."
+
+# Apply patches from the patches directory
+if [[ -d ../patches ]]; then
+  echo "Checking for patches in ../patches/..."
+  # Enable nullglob so the loop doesn't run if no files match
+  shopt -s nullglob
+  for file in ../patches/*.patch; do
+    if [[ -f "$file" ]]; then
+      echo "Applying patch: $file"
+      apply_patch "$file"
     fi
   done
-  echo "Patches applied"
+  shopt -u nullglob
 else
-  echo "No patches to apply"
+  echo "No patches directory found, skipping patch application."
 fi
 
-# Apply user-specific patches (if any)
-echo ""
-echo "Applying user patches..."
-if [ -d "../patches/user" ] && compgen -G "../patches/user/*.patch" > /dev/null; then
-  for patch in ../patches/user/*.patch; do
-    if [ -f "$patch" ]; then
-      echo "Applying user patch: $patch"
-      git apply "$patch" || echo "Warning: Could not apply $patch"
-    fi
-  done
-  echo "User patches applied"
-else
-  echo "No user patches to apply"
-fi
-
-echo ""
-echo "Settings updated successfully for ${APP_NAME}!"
+echo "Prism settings updated successfully."

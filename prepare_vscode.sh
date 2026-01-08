@@ -20,7 +20,7 @@ for file in ../patches/*.patch; do
     fi
     apply_patch "${file}"
   fi
-done
+done # <--- This was the misplaced token!
 
 # 3. Global Rebranding
 echo "Performing global rebranding to Prism..."
@@ -34,6 +34,8 @@ find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name
 sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION%-insider}\"/" package.json
 
 # 5. Fix Dependencies
+# We use 'npm install' because rebranding changes the project identity,
+# causing 'npm ci' to fail. 'npm install' recalculates the lockfile.
 echo "Installing dependencies and updating lockfile..."
 export ELECTRON_SKIP_BINARY_DOWNLOAD=1
 npm install --no-audit --no-fund

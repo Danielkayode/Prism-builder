@@ -19,12 +19,12 @@ for file in ../patches/*.patch; do
       continue
     fi
     apply_patch "${file}"
-  done
-fi
+  fi
+done
 
 # 3. Global Rebranding
 echo "Performing global rebranding to Prism..."
-# Exclude build dir to prevent breaking the Gulp logic we injected in step 1
+# Exclude build dir to prevent breaking the Gulp logic we injected
 find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" \) -not -path "./build/*" | xargs sed -i 's|voideditor/void|Danielkayode/binaries|g'
 find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" \) -not -path "./build/*" | xargs sed -i 's|Void Editor|Prism-Editor|g'
 find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" \) -not -path "./build/*" | xargs sed -i 's|Void|Prism|g'
@@ -34,9 +34,6 @@ find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name
 sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION%-insider}\"/" package.json
 
 # 5. Fix Dependencies
-# We use 'npm install' because rebranding changes the package identity,
-# causing 'npm ci' to fail. 'npm install' recalculates the lockfile.
-
 echo "Installing dependencies and updating lockfile..."
 export ELECTRON_SKIP_BINARY_DOWNLOAD=1
 npm install --no-audit --no-fund

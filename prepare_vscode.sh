@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1091,2154
-
 set -e
+
 . ./utils.sh
 
 cd vscode || { echo "'vscode' dir not found"; exit 1; }
@@ -11,22 +11,30 @@ cd vscode || { echo "'vscode' dir not found"; exit 1; }
 
 # 2. Apply patches with clean loop logic
 echo "Applying patches at ../patches/*.patch..."
-for file in ../patches/*.patch; do
-    # Skip if file doesn't exist
-    [[ -f "$file" ]] || continue
 
+# Use a safer loop that handles the case when no files match
+shopt -s nullglob  # This prevents the glob from being literal if no files match
+
+for file in ../patches/*.patch; do
     # Skip specific patches handled by update_settings.sh
     if [[ "$file" == *"add-remote-url.patch"* ]] || [[ "$file" == *"binary-name.patch"* ]]; then
         echo "Skipping $file (logic handled by update_settings.sh)"
         continue
     fi
-
-    apply_patch "$file"
+    
+    # Apply the patch
+    if [[ -f "$file" ]]; then
+        echo "Applying patch: $file"
+        apply_patch "$file"
+    fi
 done
+
+shopt -u nullglob  # Restore default behavior
 
 # 3. Global Rebranding
 echo "Performing global rebranding to Prism..."
 REPLACE_FILES="\( -name '*.json' -o -name '*.template' -o -name '*.iss' -o -name '*.xml' -o -name '*.ts' \)"
+
 find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|voideditor/void|Danielkayode/binaries|g' {} +
 find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|Void Editor|Prism-Editor|g' {} +
 find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|Void|Prism|g' {} +

@@ -16,7 +16,7 @@ for file in ../patches/*.patch; do
     [[ -f "$file" ]] || continue
 
     # Skip specific patches handled by update_settings.sh
-    if [[ "$file" == *"add-remote-url.patch" || "$file" == *"binary-name.patch" ]]; then
+    if [[ "$file" == *"add-remote-url.patch"* ]] || [[ "$file" == *"binary-name.patch"* ]]; then
         echo "Skipping $file (logic handled by update_settings.sh)"
         continue
     fi

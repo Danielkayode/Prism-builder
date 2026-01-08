@@ -9,32 +9,35 @@ cd vscode || { echo "'vscode' dir not found"; exit 1; }
 # 1. Run settings injection
 ../update_settings.sh
 
-# 2. Apply patches
+# 2. Apply patches with clean loop logic
 echo "Applying patches at ../patches/*.patch..."
 for file in ../patches/*.patch; do
-  if [[ ! -f "$file" ]]; then
-    continue
-  fi
+    # Skip if file doesn't exist
+    [[ -f "$file" ]] || continue
 
-  # Skip patches handled by sed in update_settings.sh
-  if [[ "$file" == *"add-remote-url.patch" || "$file" == *"binary-name.patch" ]]; then
-    echo "Skipping $file (logic handled by update_settings.sh)"
-  else
+    # Skip specific patches handled by update_settings.sh
+    if [[ "$file" == *"add-remote-url.patch" || "$file" == *"binary-name.patch" ]]; then
+        echo "Skipping $file (logic handled by update_settings.sh)"
+        continue
+    fi
+
     apply_patch "$file"
-  fi
 done
 
-# 3. Global Rebranding (Exclude build directory)
+# 3. Global Rebranding
 echo "Performing global rebranding to Prism..."
-find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" \) -not -path "./build/*" | xargs sed -i 's|voideditor/void|Danielkayode/binaries|g'
-find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" \) -not -path "./build/*" | xargs sed -i 's|Void Editor|Prism-Editor|g'
-find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" \) -not -path "./build/*" | xargs sed -i 's|Void|Prism|g'
-find . -type f \( -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" \) -not -path "./build/*" | xargs sed -i 's|voideditor.com|github.com/Danielkayode/binaries|g'
+REPLACE_FILES="\( -name '*.json' -o -name '*.template' -o -name '*.iss' -o -name '*.xml' -o -name '*.ts' \)"
+find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|voideditor/void|Danielkayode/binaries|g' {} +
+find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|Void Editor|Prism-Editor|g' {} +
+find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|Void|Prism|g' {} +
+find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|voideditor.com|github.com/Danielkayode/binaries|g' {} +
 
 # 4. Sync package.json version
 sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION%-insider}\"/" package.json
 
-# 5. Dependency Install (Fixes the lockfile error)
+# 5. Fix Dependencies
+# Rebranding changes the project name/version, so 'npm ci' would fail.
+# 'npm install' is used here to recalculate the package-lock.json.
 echo "Installing dependencies and updating lockfile..."
 export ELECTRON_SKIP_BINARY_DOWNLOAD=1
 npm install --no-audit --no-fund

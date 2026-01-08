@@ -1,3 +1,6 @@
-build_from_source="true"
-legacy-peer-deps="true"
-timeout=180000
+registry=https://registry.npmjs.org/
+disturl=https://electronjs.org/headers
+target_arch=x64
+runtime=electron
+build_from_source=true
+# Prism Editor npm configuration

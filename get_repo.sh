@@ -31,7 +31,7 @@ mkdir -p vscode
 cd vscode || { echo "'vscode' dir not found"; exit 1; }
 
 git init -q
-git remote add origin https://github.com/danielkayode/prism-Editor.git
+git remote add origin https://github.com/Danielkayode/prism-Editor.git
 
 # Allow callers to specify a particular commit to checkout via the
 # environment variable PRISM_COMMIT. We still default to the tip of the

@@ -58,20 +58,20 @@ update_setting "${NLS}" src/vs/workbench/contrib/preferences/common/preferencesC
 
 echo "Applying Prism customizations..."
 
-# Apply patches from the patches directory
-if [[ -d ../patches ]]; then
-  echo "Checking for patches in ../patches/..."
-  # Enable nullglob so the loop doesn't run if no files match
-  shopt -s nullglob
-  for file in ../patches/*.patch; do
-    if [[ -f "$file" ]]; then
-      echo "Applying patch: $file"
-      apply_patch "$file"
-    fi
-  done
-  shopt -u nullglob
-else
-  echo "No patches directory found, skipping patch application."
-fi
+# The patch application block has been disabled.
+# if [[ -d ../patches ]]; then
+#   echo "Checking for patches in ../patches/..."
+#   # Enable nullglob so the loop doesn't run if no files match
+#   shopt -s nullglob
+#   for file in ../patches/*.patch; do
+#     if [[ -f "$file" ]]; then
+#       echo "Applying patch: $file"
+#       apply_patch "$file"
+#     fi
+#   done
+#   shopt -u nullglob
+# else
+#   echo "No patches directory found, skipping patch application."
+# fi
 
 echo "Prism settings updated successfully."

@@ -15,13 +15,11 @@ update_setting () {
   local FILENAME SETTING LINE_NUM IN_SETTING FOUND DEFAULT_TRUE_TO_FALSE
 
   FILENAME="${2}"
-  # check that the file exists
   if [[ ! -f "${FILENAME}" ]]; then
     echo "File to update setting in does not exist ${FILENAME}"
     return
   fi
 
-  # go through lines of file, looking for block that contains setting
   SETTING="${1}"
   LINE_NUM=0
   while read -r line; do
@@ -40,7 +38,6 @@ update_setting () {
     return
   fi
 
-  # construct line-aware replacement string
   if [[ "${line}" == *"${DEFAULT_TRUE}"* ]]; then
     DEFAULT_TRUE_TO_FALSE="${LINE_NUM}s/${DEFAULT_TRUE}/${DEFAULT_FALSE}/"
   else
@@ -53,3 +50,12 @@ update_setting () {
 update_setting "${TELEMETRY_CRASH_REPORTER}" src/vs/workbench/electron-sandbox/desktop.contribution.ts
 update_setting "${TELEMETRY_CONFIGURATION}" src/vs/platform/telemetry/common/telemetryService.ts
 update_setting "${NLS}" src/vs/workbench/contrib/preferences/common/preferencesContribution.ts
+
+# --- ADDED: Inject serverDownloadUrlTemplate ---
+# This replaces the failing add-remote-url.patch
+echo "Injecting serverDownloadUrlTemplate into Gulp files..."
+URL_TEMPLATE="https://github.com/${GH_REPO_PATH}/releases/download/${RELEASE_VERSION}/${APP_NAME_LC}-reh-\${os}-\${arch}-${RELEASE_VERSION}.tar.gz"
+
+# Use @ as a delimiter for sed to avoid clashing with the forward slashes in the URL
+sed -i "s@version }))@version, serverDownloadUrlTemplate: '${URL_TEMPLATE}' })@g" build/gulpfile.reh.js
+sed -i "s@version }))@version, serverDownloadUrlTemplate: '${URL_TEMPLATE}' })@g" build/gulpfile.vscode.js

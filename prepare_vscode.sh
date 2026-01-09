@@ -45,4 +45,7 @@ echo "Installing dependencies and updating lockfile..."
 export ELECTRON_SKIP_BINARY_DOWNLOAD=1
 npm install --no-audit --no-fund
 
+# FIX: Return to the parent directory so the calling script (build.sh) can continue correctly
+cd ..
+
 echo "VS Code source prepared successfully for Prism."

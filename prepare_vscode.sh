@@ -26,11 +26,14 @@ done
 
 # 3. Global Rebranding
 echo "Performing global rebranding to Prism..."
-REPLACE_FILES="\( -name '*.json' -o -name '*.template' -o -name '*.iss' -o -name '*.xml' -o -name '*.ts' \)"
-find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|voideditor/void|Danielkayode/binaries|g' {} +
-find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|Void Editor|Prism-Editor|g' {} +
-find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|Void|Prism|g' {} +
-find . -type f $REPLACE_FILES -not -path "./build/*" -exec sed -i 's|voideditor.com|github.com/Danielkayode/binaries|g' {} +
+
+# FIX: Use an array for find arguments to handle parentheses and wildcards correctly
+REPLACE_FILES=( "(" -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" ")" )
+
+find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|voideditor/void|Danielkayode/binaries|g' {} +
+find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Void Editor|Prism-Editor|g' {} +
+find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Void|Prism|g' {} +
+find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|voideditor.com|github.com/Danielkayode/binaries|g' {} +
 
 # 4. Sync package.json version
 sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION%-insider}\"/" package.json

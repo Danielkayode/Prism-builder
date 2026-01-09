@@ -27,7 +27,7 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
   # 3. Packaging
   if [[ "${OS_NAME}" == "linux" ]]; then
       npm run gulp "vscode-linux-${VSCODE_ARCH}-min-ci"
-      # Source build_cli.sh from the parent directory (root)
+      # Source build_cli.sh from the parent directory
       . ../build_cli.sh
   fi
 fi

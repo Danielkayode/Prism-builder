@@ -24,8 +24,6 @@ for file in ../patches/*.patch; do
     apply_patch "$file"
 done
 
-apply_patch ../patches/fix-gulpfile-reh-dependency.patch
-
 # 3. Global Rebranding
 echo "Performing global rebranding to Prism..."
 

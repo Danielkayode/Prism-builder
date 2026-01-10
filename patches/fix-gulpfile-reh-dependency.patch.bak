@@ -1,0 +1,47 @@
+--- build/gulpfile.reh.js
++++ build/gulpfile.reh.js
+@@ -28,7 +28,43 @@
+ const glob = require('glob');
+ const { compileBuildWithManglingTask } = require('./gulpfile.compile');
+ const { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask } = require('./gulpfile.extensions');
+-const { vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } = require('./gulpfile.web');
++
++const vscodeWebResources = [
++	'out-build/vs/**/*.{svg,png,jpg,jpeg,gif,ttf}',
++	'out-build/vs/base/common/worker/simpleWorker.js',
++	'out-build/vs/base/worker/workerMain.js',
++	'out-build/vs/workbench/contrib/debug/browser/media/*',
++	'out-build/vs/workbench/contrib/externalTerminal/browser/media/*',
++	'out-build/vs/workbench/contrib/welcome/gettingStarted/browser/media/*',
++	'out-build/vs/workbench/contrib/welcome/walkThrough/browser/media/*',
++	'out-build/vs/workbench/contrib/webview/browser/media/*',
++	'out-build/vs/workbench/contrib/webviewView/browser/media/*',
++	'out-build/vs/workbench/contrib/files/browser/media/file-icons/**/*',
++	'!**/node_modules/**',
++];
++
++const vscodeWebResourceIncludes = [
++	...vscodeWebResources,
++	'out-build/vs/code/browser/workbench/workbench.html',
++	'out-build/vs/code/browser/workbench/workbench.js',
++	'out-build/vs/code/browser/workbench/manifest.json',
++];
++
++const createVSCodeWebFileContentMapper = (serverRoot, product) => {
++	return (content, path) => {
++		if (path.endsWith('workbench.html')) {
++			const authSession = product.auth ? `,"auth-session": "${product.auth.clientId}/${product.auth.id}"` : '';
++			return content.replace('{{WORKBENCH_WEB_CONFIGURATION}}', `{"serverRoot": "${serverRoot}","webEndpoint": "${product.webEndpoint}","devMode":false,"webWorkerFetch":true${authSession}}`);
++		} else if (path.endsWith('manifest.json')) {
++			const manifest = JSON.parse(content);
++			manifest.name = product.nameShort;
++			manifest.short_name = product.nameShort;
++			manifest.description = product.nameLong;
++			return JSON.stringify(manifest, null, '\t');
++		}
++		return content;
++	};
++};
+
+ const root = path.dirname(__dirname);
+ const commit = getVersion(root);

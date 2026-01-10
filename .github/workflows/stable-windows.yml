@@ -135,6 +135,7 @@ jobs:
 
       - name: Build
         env:
+          GITHUB_TOKEN: ${{ secrets.STRONGER_GITHUB_TOKEN }}
           SHOULD_BUILD_REH: 'no'
           SHOULD_BUILD_REH_WEB: 'no'
         run: ./build.sh
@@ -223,7 +224,7 @@ jobs:
 
       - name: Build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.STRONGER_GITHUB_TOKEN }}
           npm_config_arch: ${{ matrix.vscode_arch }}
           npm_config_target_arch: ${{ matrix.vscode_arch }}
         run: ./build/windows/package.sh

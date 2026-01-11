@@ -15,6 +15,24 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
       cd vscode || { echo "'vscode' dir not found"; exit 1; }
   fi
 
+  # --------------------------------------------------------------------------------------------
+  # FIX: Manually patch build/lib/util.js to prevent crash on electron version check
+  # The original code looks for .npmrc regex which fails. We force it to read package.json.
+  # --------------------------------------------------------------------------------------------
+  UTIL_JS="build/lib/util.js"
+  if [[ -f "$UTIL_JS" ]]; then
+      echo "Applying hotfix to $UTIL_JS..."
+      # Replace the line reading .npmrc with reading package.json
+      sed -i 's/const npmrc =.*/const packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.join(root, "package.json"), "utf8"));/' "$UTIL_JS"
+      # Replace the regex extraction with direct JSON access
+      sed -i 's/const electronVersion =.*/const electronVersion = packageJson.devDependencies.electron;/' "$UTIL_JS"
+      # Disable msBuildId check
+      sed -i 's/const msBuildId =.*/const msBuildId = "";/' "$UTIL_JS"
+  else
+      echo "Warning: $UTIL_JS not found. Build may fail if using legacy build scripts."
+  fi
+  # --------------------------------------------------------------------------------------------
+
   export NODE_OPTIONS="--max-old-space-size=8192"
 
   # 2. Build

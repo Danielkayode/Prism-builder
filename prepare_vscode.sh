@@ -16,9 +16,11 @@ for file in ../patches/*.patch; do
         continue
     fi
     
-    # Skip specific patches handled by update_settings.sh
-    if [[ "$file" == *"add-remote-url.patch"* ]] || [[ "$file" == *"binary-name.patch"* ]]; then
-        echo "Skipping $file (logic handled by update_settings.sh)"
+    # Skip specific patches handled by update_settings.sh OR that are obsolete/broken
+    if [[ "$file" == *"add-remote-url.patch"* ]] || \
+       [[ "$file" == *"binary-name.patch"* ]] || \
+       [[ "$file" == *"fix-gulpfile-reh-dependency.patch"* ]]; then
+        echo "Skipping $file (logic handled by update_settings.sh or file missing)"
         continue
     fi
     apply_patch "$file"
@@ -39,8 +41,6 @@ find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|void
 sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION%-insider}\"/" package.json
 
 # 5. Fix Dependencies
-# Rebranding changes the project name/version, so 'npm ci' would fail.
-# 'npm install' is used here to recalculate the package-lock.json.
 echo "Installing dependencies and updating lockfile..."
 export ELECTRON_SKIP_BINARY_DOWNLOAD=1
 npm install --no-audit --no-fund

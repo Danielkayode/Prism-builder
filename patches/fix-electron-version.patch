@@ -1,0 +1,14 @@
+--- a/build/lib/util.js
++++ b/build/lib/util.js
+@@ -308,8 +308,7 @@
+ }
+ function getElectronVersion() {
+-    const npmrc = fs_1.default.readFileSync(path_1.default.join(root, '.npmrc'), 'utf8');
+-    const electronVersion = /^target="(.*)"$/m.exec(npmrc)[1];
+-    const msBuildId = /^ms_build_id="(.*)"$/m.exec(npmrc)[1];
+-    return { electronVersion, msBuildId };
++    // Patch: Read electron version from package.json instead of .npmrc regex
++    const packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.join(root, 'package.json'), 'utf8'));
++    return { electronVersion: packageJson.devDependencies.electron, msBuildId: '' };
+ }
+ //# sourceMappingURL=util.js.map

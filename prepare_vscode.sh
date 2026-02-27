@@ -21,6 +21,12 @@ for file in ../patches/*.patch; do
         echo "Skipping $file (logic handled by update_settings.sh)"
         continue
     fi
+
+    # Skip patches that target files no longer present in the current VSCode version
+    if [[ "$file" == *"fix-gulpfile-reh-dependency.patch"* ]]; then
+        echo "Skipping $file (build/gulpfile.reh.js no longer exists in VSCode 1.99+)"
+        continue
+    fi
     apply_patch "$file"
 done
 

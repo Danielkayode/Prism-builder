@@ -1,0 +1,12 @@
+diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
+--- a/build/gulpfile.vscode.js
++++ b/build/gulpfile.vscode.js
+@@ -65,7 +65,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+ 
+ const coreCI = task.define('optimize-vscode-ci', task.series(
+	util.rimraf('out-vscode-min'),
+-	optimize.optimizeTask({
++	optimize.bundleTask({
+		src: 'out-build',
+		entryPoints: buildfile.vscode,
+		resources: [],

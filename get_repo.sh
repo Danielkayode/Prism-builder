@@ -50,14 +50,14 @@ MS_COMMIT=$PRISM_BRANCH
 
 # Extract Prism-specific versioning
 # Robust jq filter to prevent "null" strings
-PRISM_VERSION=$( jq -r 'if .prismVersion != null then .prismVersion elif .voidVersion != null then .voidVersion else empty end' "product.json" )
+PRISM_VERSION=$( jq -r 'if .prismVersion != null then .prismVersion else empty end' "product.json" )
 
-if [[ -n "${PRISM_RELEASE}" ]]; then 
+if [[ -n "${PRISM_RELEASE}" ]]; then
   # Manual release override from workflow dispatch
   RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE}"
 else
   # Automatic release suffix from product.json
-  PRISM_RELEASE_VAL=$( jq -r 'if .prismRelease != null then .prismRelease elif .voidRelease != null then .voidRelease else empty end' "product.json" )
+  PRISM_RELEASE_VAL=$( jq -r 'if .prismRelease != null then .prismRelease else empty end' "product.json" )
   RELEASE_VERSION="${MS_TAG}${PRISM_RELEASE_VAL}"
 fi
 

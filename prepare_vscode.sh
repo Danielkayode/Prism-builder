@@ -33,13 +33,12 @@ done
 # 3. Global Rebranding
 echo "Performing global rebranding to Prism..."
 
-# FIX: Use an array for find arguments to handle parentheses and wildcards correctly
+# Use an array for find arguments to handle parentheses and wildcards correctly
 REPLACE_FILES=( "(" -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" ")" )
 
-find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|voideditor/void|Danielkayode/binaries|g' {} +
-find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Void Editor|Prism-Editor|g' {} +
-find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Void|Prism|g' {} +
-find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|voideditor.com|github.com/Danielkayode/binaries|g' {} +
+find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Danielkayode/prism-Editor|Danielkayode/binaries|g' {} +
+find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Prism-Editor|Prism|g' {} +
+find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|prism-editor\.com|github.com/Danielkayode/binaries|g' {} +
 
 # 4. Sync package.json version
 sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION%-insider}\"/" package.json

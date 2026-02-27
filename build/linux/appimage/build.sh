@@ -22,30 +22,29 @@ if [[ "${VSCODE_ARCH}" == "x64" ]]; then
   ./pkg2appimage.AppImage --appimage-extract && mv ./squashfs-root ./pkg2appimage.AppDir
 
   # add update's url
-  # Void - this line is important - ask GPT about it
-  sed -i 's/generate_type2_appimage/generate_type2_appimage -u "gh-releases-zsync|voideditor|binaries|latest|*.AppImage.zsync"/' pkg2appimage.AppDir/AppRun
+  APP_NAME_LC="$( echo "${APP_NAME}" | awk '{print tolower($0)}' )"
+  sed -i "s/generate_type2_appimage/generate_type2_appimage -u \"gh-releases-zsync|${ORG_NAME}|binaries|latest|*.AppImage.zsync\"/" pkg2appimage.AppDir/AppRun
 
   # remove check so build in docker can succeed
   sed -i 's/grep docker/# grep docker/' pkg2appimage.AppDir/usr/share/pkg2appimage/functions.sh
 
   if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
-    sed -i 's|@@NAME@@|Void-Insiders|g' recipe.yml
-    sed -i 's|@@APPNAME@@|void-insiders|g' recipe.yml
-    sed -i 's|@@ICON@@|void-insiders|g' recipe.yml
+    sed -i "s|@@NAME@@|${APP_NAME}-Insiders|g" recipe.yml
+    sed -i "s|@@APPNAME@@|${APP_NAME_LC}-insiders|g" recipe.yml
+    sed -i "s|@@ICON@@|${APP_NAME_LC}-insiders|g" recipe.yml
   else
-    # Void branding instead of default codium
-    sed -i 's|@@NAME@@|Void|g' recipe.yml
-    sed -i 's|@@APPNAME@@|void|g' recipe.yml
-    sed -i 's|@@ICON@@|void|g' recipe.yml
+    sed -i "s|@@NAME@@|${APP_NAME}|g" recipe.yml
+    sed -i "s|@@APPNAME@@|${APP_NAME_LC}|g" recipe.yml
+    sed -i "s|@@ICON@@|${APP_NAME_LC}|g" recipe.yml
   fi
 
-  # workaround that enforces x86 ARCH for pkg2appimage having /__w/vscodium/vscodium/build/linux/appimage/VSCodium/VSCodium.AppDir/usr/share/codium/resources/app/node_modules/rc/index.js is of architecture armhf
+  # workaround that enforces x86 ARCH for pkg2appimage
   export ARCH=x86_64
   bash -ex pkg2appimage.AppDir/AppRun recipe.yml
 
   rm -f pkg2appimage-*.AppImage
   rm -rf pkg2appimage.AppDir
-  rm -rf Void* # Void had this commented out at one point
+  rm -rf "${APP_NAME}"*
 fi
 
 cd "${CALLER_DIR}"

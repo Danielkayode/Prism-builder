@@ -22,11 +22,13 @@ elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
   else
   	echo "It's a Dispatch"
 
+    export SHOULD_BUILD="yes"
     export SHOULD_DEPLOY="yes"
   fi
 else
 	echo "It's a Cron"
 
+	export SHOULD_BUILD="yes"
 	export SHOULD_DEPLOY="yes"
 fi
 

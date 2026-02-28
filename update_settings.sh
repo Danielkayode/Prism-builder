@@ -6,15 +6,11 @@ echo "Injecting Prism-specific configurations..."
 URL="https://github.com/${GH_REPO_PATH}/releases/download/${RELEASE_VERSION}/${APP_NAME_LC}-reh-\${os}-\${arch}-${RELEASE_VERSION}.tar.gz"
 
 # Inject Remote URL Template
-if [[ -f "build/gulpfile.reh.js" ]]; then
-    sed -i "s@version }))@version, serverDownloadUrlTemplate: '${URL}' }))@g" build/gulpfile.reh.js
-fi
+# FIX: Correct the missing closing parenthesis in the pipe(json(...)) call
+inject_config "s@version }))@version, serverDownloadUrlTemplate: '${URL}' }))@g" build/gulpfile.reh.js
+inject_config "s@version }))@version, serverDownloadUrlTemplate: '${URL}' }))@g" build/gulpfile.vscode.js
 
-if [[ -f "build/gulpfile.vscode.js" ]]; then
-    sed -i "s@version }))@version, serverDownloadUrlTemplate: '${URL}' }))@g" build/gulpfile.vscode.js
-
-    # Inject Binary Name
-    sed -i "s/name: 'code-oss'/name: '${BINARY_NAME}'/g" build/gulpfile.vscode.js
-fi
+# Inject Binary Name
+inject_config "s/name: 'code-oss'/name: '${BINARY_NAME}'/g" build/gulpfile.vscode.js
 
 echo "Update settings completed successfully."

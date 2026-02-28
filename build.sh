@@ -6,14 +6,11 @@ set -ex
 
 if [[ "${SHOULD_BUILD}" == "yes" ]]; then
   # 1. Prepare Source
-  # This script enters the 'vscode' directory to run operations.
   . prepare_vscode.sh
 
-  # FIX: Check if we are already inside 'vscode' before trying to cd into it.
-  # prepare_vscode.sh changes directory to 'vscode', so we might already be there.
-  if [[ "$(basename "$PWD")" != "vscode" ]]; then
-      cd vscode || { echo "'vscode' dir not found"; exit 1; }
-  fi
+  # Sourcing prepare_vscode.sh (which sources utils.sh) gives us access to ensure_in_vscode
+  # prepare_vscode.sh ends with 'cd ..', so we need to enter 'vscode' again.
+  ensure_in_vscode
 
   export NODE_OPTIONS="--max-old-space-size=8192"
 
@@ -30,4 +27,7 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
       # Source build_cli.sh from the parent directory
       . ../build_cli.sh
   fi
+
+  # Return to parent directory to ensure subsequent steps (like compression) work as expected
+  cd ..
 fi 

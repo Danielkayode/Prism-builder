@@ -63,3 +63,25 @@ if ! exists gsed; then
     }
   fi
 fi
+
+# Helper to ensure we are in the vscode directory
+ensure_in_vscode() {
+    if [[ "$(basename "$PWD")" != "vscode" ]]; then
+        if [[ -d "vscode" ]]; then
+            cd vscode || { echo "Error: Failed to enter 'vscode' directory"; exit 1; }
+        else
+            echo "Error: 'vscode' directory not found"; exit 1;
+        fi
+    fi
+}
+
+# Helper for configuration injection with existence check
+inject_config() {
+    local pattern="$1"
+    local target_file="$2"
+    if [[ -f "$target_file" ]]; then
+        sed -i "$pattern" "$target_file"
+    else
+        echo "Warning: Target file $target_file not found for injection."
+    fi
+}

@@ -1,11 +1,11 @@
---- build/gulpfile.reh.js
-+++ build/gulpfile.reh.js
-@@ -28,7 +28,43 @@
- const glob = require('glob');
- const { compileBuildWithManglingTask } = require('./gulpfile.compile');
+diff --git a/build/gulpfile.reh.js b/build/gulpfile.reh.js
+index e7856cc..3924711 100644
+--- a/build/gulpfile.reh.js
++++ b/build/gulpfile.reh.js
+@@ -30,6 +30,43 @@ const { compileBuildWithManglingTask } = require('./gulpfile.compile');
  const { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask } = require('./gulpfile.extensions');
--const { vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } = require('./gulpfile.web');
-+
+ // const { vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } = require('./gulpfile.web'); // Commented out - not available in Void fork
+
 +const vscodeWebResources = [
 +	'out-build/vs/**/*.{svg,png,jpg,jpeg,gif,ttf}',
 +	'out-build/vs/base/common/worker/simpleWorker.js',
@@ -42,6 +42,6 @@
 +		return content;
 +	};
 +};
-
++
  const root = path.dirname(__dirname);
  const commit = getVersion(root);

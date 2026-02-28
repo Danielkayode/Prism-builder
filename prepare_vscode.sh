@@ -22,11 +22,6 @@ for file in ../patches/*.patch; do
         continue
     fi
 
-    # Skip patches that target files no longer present in the current VSCode version
-    if [[ "$file" == *"fix-gulpfile-reh-dependency.patch"* ]]; then
-        echo "Skipping $file (build/gulpfile.reh.js no longer exists in VSCode 1.99+)"
-        continue
-    fi
     apply_patch "$file"
 done
 
@@ -34,11 +29,15 @@ done
 echo "Performing global rebranding to Prism..."
 
 # Use an array for find arguments to handle parentheses and wildcards correctly
-REPLACE_FILES=( "(" -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" ")" )
+REPLACE_FILES=( "(" -name "*.json" -o -name "*.template" -o -name "*.iss" -o -name "*.xml" -o -name "*.ts" -o -name "*.js" ")" )
 
 find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Danielkayode/prism-Editor|Danielkayode/binaries|g' {} +
 find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|Prism-Editor|Prism|g' {} +
 find . -type f "${REPLACE_FILES[@]}" -not -path "./build/*" -exec sed -i 's|prism-editor\.com|github.com/Danielkayode/binaries|g' {} +
+
+# Rebrand specific files in build/ as well, as they often contain hardcoded URLs/names in our fork
+find ./build -type f "${REPLACE_FILES[@]}" -exec sed -i 's|Danielkayode/prism-Editor|Danielkayode/binaries|g' {} +
+find ./build -type f "${REPLACE_FILES[@]}" -exec sed -i 's|Prism-Editor|Prism|g' {} +
 
 # 4. Sync package.json version
 sed -i "s/\"version\": \".*\"/\"version\": \"${RELEASE_VERSION%-insider}\"/" package.json

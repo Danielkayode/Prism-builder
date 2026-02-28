@@ -1,7 +1,8 @@
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
+index cbff109..8eda60b 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -65,7 +65,7 @@
+@@ -65,7 +65,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  
  const coreCI = task.define('optimize-vscode-ci', task.series(
 	util.rimraf('out-vscode-min'),
